@@ -93,11 +93,19 @@ function Particle:getLifespan()
 end
 
 -- colour
-function Particle:setClr(colour)
+function Particle:setColor(colour)
     self.colour = colour
 end
 
-function Particle:getClr()
+function Particle:getColor()
+    return self.colour
+end
+
+function Particle:setColour(colour)
+    self.colour = colour
+end
+
+function Particle:getColour()
     return self.colour
 end
 

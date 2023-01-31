@@ -26,7 +26,7 @@ particleB:setMode(Particles.modes.LOOP)
 
 particleB:setBounds(0,0,400,240)
 
-particleB:setClr(gfx.kColorXOR)
+particleB:setColour(gfx.kColorXOR)
 
 
 function playdate.update()
