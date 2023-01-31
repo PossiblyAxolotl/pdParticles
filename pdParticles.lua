@@ -1,4 +1,4 @@
-circles = {}
+local circles = {}
 
 -- base particle class
 class("Particle").extends()
