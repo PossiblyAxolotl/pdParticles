@@ -1,4 +1,4 @@
-local circles = {}
+local particles = {}
 
 -- base particle class
 class("Particle").extends()
@@ -15,11 +15,11 @@ function Particle:init(x, y)
     self.colour = playdate.graphics.kColorBlack
     self.bounds = {0,0,0,0}
     self.mode = 0
-    self.angular=0
+    self.angular={0,0}
+    self.points={3,3}
 
-    if self.type == 1 then
-        circles[#circles+1] = self
-    end
+    particles[#particles+1] = self
+
 end
 
 -- [[ SETTERS AND GETTERS ]] --
@@ -256,18 +256,109 @@ function ParticleCircle:update()
     playdate.graphics.setColor(c)
     if self.mode == 1 then
         local newCircs = decay(self.particles, self.decay)
-        self.circs = newCircs
+        
     elseif self.mode == 0 then
         local newCircs = disappear(self.particles)
-        self.circs = newCircs
+        
     elseif self.mode == 2 then
         local newCircs = loop(self.particles, self.bounds)
-        self.circs = newCircs
+        
     else
         local newCircs = stay(self.particles, self.bounds)
-        self.circs = newCircs
+        
     end
 end
+
+class("ParticlePoly", {type = 2}).extends(Particle)
+
+function ParticlePoly:getPoints()
+    return self.points[1], self.points[2]
+end
+
+function ParticlePoly:setPoints(min,max)
+    self.points = {min, max or min}
+end
+
+-- angular
+function ParticlePoly:getAngular()
+    return self.angular[1], self.angular[2]
+end
+
+function ParticlePoly:setAngular(min,max)
+    self.angular = {min, max or min}
+end
+
+function ParticlePoly:create(amount)
+    for i = 1, amount, 1 do
+        local part = {
+            x = self.x,
+            y = self.y,
+            dir = math.random(self.spread[1],self.spread[2]),
+            size = math.random(self.size[1],self.size[2]),
+            speed = math.random(self.speed[1],self.speed[2]),
+            lifespan = math.random(self.lifespan[1],self.lifespan[2]),
+            thickness = math.random(self.thickness[1],self.thickness[2]),
+            angular = math.random(self.angular[1],self.angular[2]),
+            points = math.random(self.points[1], self.points[2]),
+            decay = self.decay,
+            rotation = 0
+        }
+
+        self.particles[#self.particles+1] = part
+    end
+end
+
+function ParticlePoly:add(amount)
+    self:create(amount)
+end
+
+function ParticlePoly:update()
+    local w = playdate.graphics.getLineWidth()
+    local c = playdate.graphics.getColor()
+    playdate.graphics.setColor(self.colour)
+    for part = 1, #self.particles, 1 do
+        local poly = self.particles[part]
+        local polygon = {}
+        local degrees = 360 / poly.points
+        for point = 1, poly.points, 1 do
+            polygon[#polygon+1] = poly.x + math.sin(math.rad(degrees * point + poly.rotation)) * poly.size
+            polygon[#polygon+1] = poly.y - math.cos(math.rad(degrees * point + poly.rotation)) * poly.size
+        end
+        if poly.thickness < 1 then
+            playdate.graphics.fillPolygon(table.unpack(polygon))
+        else
+            playdate.graphics.setLineWidth(poly.thickness)
+            playdate.graphics.drawPolygon(table.unpack(polygon))
+        end
+
+        poly.x += math.sin(math.rad(poly.dir)) * poly.speed
+        poly.y = poly.y - math.cos(math.rad(poly.dir)) * poly.speed
+
+        poly.rotation += poly.angular
+
+        self.particles[part] = poly
+    end
+    playdate.graphics.setLineWidth(w)
+    playdate.graphics.setColor(c)
+
+    if self.mode == 1 then
+        local newCircs = decay(self.particles, self.decay)
+        
+    elseif self.mode == 0 then
+        local newCircs = disappear(self.particles)
+        
+    elseif self.mode == 2 then
+        local newCircs = loop(self.particles, self.bounds)
+        
+    else
+        local newCircs = stay(self.particles, self.bounds)
+        
+    end
+end
+
+
+-- [[ GLOBAL PARTICLE STUFF ]] --
+
 
 class("Particles").extends()
 
@@ -280,7 +371,7 @@ function Particles:update()
 end
 
 function Particles:clearAll()
-    for circle = 1, #circles, 1 do
-        circles[circle]:clearParticles()
+    for part = 1, #particles, 1 do
+        particles[part]:clearParticles()
     end
 end
