@@ -1,4 +1,4 @@
-local circles = {}
+circles = {}
 
 -- base particle class
 class("Particle").extends()
@@ -15,6 +15,7 @@ function Particle:init(x, y)
     self.colour = playdate.graphics.kColorBlack
     self.bounds = {0,0,0,0}
     self.mode = 0
+    self.angular=0
 
     if self.type == 1 then
         circles[#circles+1] = self
@@ -141,59 +142,73 @@ end
 
 -- [[ PARTICLE MODES ]] --
 
--- circles
-local function decayCirc(circs, decay)
-    for part = 1, #circs, 1 do
-        local circ = circs[part]
-        circ.size -= decay
+local function decay(partlist, decay)
+    for part = 1, #partlist, 1 do
+        local particle = partlist[part]
+        particle.size -= decay
 
-        if circ.size <= 0 then
-            circ.size = 0
+        if particle.size <= 0 then
+            particle.size = 0
         end
 
-        circs[part] = circ
+        partlist[part] = particle
     end
 
-    for part = 1, #circs, 1 do
-        local circ = circs[part]
-        if circ.size <= 0 then
-            table.remove(circs,part)
+    for part = 1, #partlist, 1 do
+        local particle = partlist[part]
+        if particle.size <= 0 then
+            table.remove(partlist,part)
             break
         end
     end
 
-    return circs
+    return partlist
 end
 
-local function disappearCirc(circs)
-    for part = 1, #circs, 1 do
-        local circ = circs[part]
-        circ.lifespan -= .1
+local function disappear(partlist)
+    for part = 1, #partlist, 1 do
+        local particle = partlist[part]
+        particle.lifespan -= .1
     end
-    for part = 1, #circs, 1 do
-        local circ = circs[part]
-        if circ.lifespan <= 0 then
-            table.remove(circs,part)
+    for part = 1, #partlist, 1 do
+        local particle = partlist[part]
+        if particle.lifespan <= 0 then
+            table.remove(partlist,part)
             break
         end
     end
 
-    return circs
+    return partlist
 end
 
-local function loopCirc(circs, bounds)
+local function loop(partlist, bounds)
     if bounds[3] > bounds[1] and bounds[4] > bounds[2] then
         local xDif , yDif = bounds[3] - bounds[1], bounds[4] - bounds[2]
-        for part = 1, #circs, 1 do
-            local circ = circs[part]
-            if circ.x > bounds[3] then circ.x -= xDif
-            elseif circ.x < bounds[1] then circ.x += xDif end
-            if circ.y > bounds[4] then circ.y -= yDif
-            elseif circ.y < bounds[2] then circ.y += yDif end
+        for part = 1, #partlist, 1 do
+            local particle = partlist[part]
+            if particle.x > bounds[3] then particle.x -= xDif
+            elseif particle.x < bounds[1] then particle.x += xDif end
+            if particle.y > bounds[4] then particle.y -= yDif
+            elseif particle.y < bounds[2] then particle.y += yDif end
         end
     end
 
-    return circs
+    return partlist
+end
+
+local function stay(partlist, bounds)
+    if bounds[3] > bounds[1] and bounds[4] > bounds[2] then
+        local xDif , yDif = bounds[3] - bounds[1], bounds[4] - bounds[2]
+        for part = 1, #partlist, 1 do
+            local particle = partlist[part]
+            if particle.x > bounds[3] then table.remove(partlist,part) break
+            elseif particle.x < bounds[1] then table.remove(partlist,part) break
+            elseif particle.y > bounds[4] then table.remove(partlist,part) break
+            elseif particle.y < bounds[2] then table.remove(partlist,part) break end
+        end
+    end
+
+    return partlist
 end
 
 class("ParticleCircle", {type = 1}).extends(Particle)
@@ -240,13 +255,16 @@ function ParticleCircle:update()
     playdate.graphics.setLineWidth(w)
     playdate.graphics.setColor(c)
     if self.mode == 1 then
-        local newCircs = decayCirc(self.particles, self.decay)
+        local newCircs = decay(self.particles, self.decay)
         self.circs = newCircs
     elseif self.mode == 0 then
-        local newCircs = disappearCirc(self.particles)
+        local newCircs = disappear(self.particles)
         self.circs = newCircs
     elseif self.mode == 2 then
-        local newCircs = loopCirc(self.particles, self.bounds)
+        local newCircs = loop(self.particles, self.bounds)
+        self.circs = newCircs
+    else
+        local newCircs = stay(self.particles, self.bounds)
         self.circs = newCircs
     end
 end
