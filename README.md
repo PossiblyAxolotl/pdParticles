@@ -4,9 +4,11 @@ pdParticles is a free Playdate particle library created by [PossiblyAxolotl](htt
 
 ![playdate-20230131-144652](https://user-images.githubusercontent.com/76883695/215882419-0d358b40-1236-477b-a207-c5ba053922fd.gif)
 
-Currently pdParticles only supports circles, but you can still do a fair bit with those.
+Currently pdParticles supports circles and basic shapes.
 
 ![playdate-20230131-145305](https://user-images.githubusercontent.com/76883695/215882184-feb815a5-5964-432c-a96d-5274c46adb32.gif)
+
+![playdate-20230131-174818](https://user-images.githubusercontent.com/76883695/215910620-76941466-e572-4326-98c5-2b527deb8838.gif)
 
 Check out the [wiki](https://github.com/PossiblyAxolotl/pdParticles/wiki) to see how to get started and use the library. 
 
