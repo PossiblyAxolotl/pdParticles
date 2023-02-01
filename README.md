@@ -8,7 +8,7 @@ Currently pdParticles supports circles and basic shapes.
 
 ![playdate-20230131-145305](https://user-images.githubusercontent.com/76883695/215882184-feb815a5-5964-432c-a96d-5274c46adb32.gif)
 
-![playdate-20230131-174818](https://user-images.githubusercontent.com/76883695/215910620-76941466-e572-4326-98c5-2b527deb8838.gif)
+![playdate-20230201-000033](https://user-images.githubusercontent.com/76883695/215965042-7c7b5622-e4b9-460a-95e2-3b5b875a8ff0.gif)
 
 Check out the [wiki](https://github.com/PossiblyAxolotl/pdParticles/wiki) to see how to get started and use the library. 
 
