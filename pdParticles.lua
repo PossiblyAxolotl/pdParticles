@@ -365,8 +365,8 @@ class("Particles").extends()
 Particles.modes = {DISAPPEAR = 0, DECAY = 1, LOOP = 2, STAY = 3}
 
 function Particles:update()
-    for circle = 1, #circles, 1 do
-        circles[circle]:update()
+    for particle = 1, #particles, 1 do
+        particles[particle]:update()
     end
 end
 
