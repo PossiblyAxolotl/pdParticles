@@ -5,7 +5,7 @@ class("Particle").extends()
 function Particle:init(x, y)
     self.x = x or 0
     self.y = y or 0
-    self.size = {10,10}
+    self.size = {1,1}
     self.spread = {0,359}
     self.speed = {1,1}
     self.thickness = {0,0}
@@ -15,8 +15,14 @@ function Particle:init(x, y)
     self.colour = playdate.graphics.kColorBlack
     self.bounds = {0,0,0,0}
     self.mode = 0
-    self.angular={0,0}
-    self.points={3,3}
+    if self.type == 2 then -- polys
+        self.points={3,3}
+        self.angular={0,0}
+    elseif self.type == 3 then -- images
+        self.angular={0,0}
+        self.image = playdate.graphics.image.new(1,1)
+        self.table = nil
+    end
 
     particles[#particles+1] = self
 
@@ -356,6 +362,137 @@ function ParticlePoly:update()
     end
 end
 
+class("ParticleImage", {type = 3}).extends(Particle)
+
+function ParticleImage:getAngular()
+    return self.angular[1], self.angular[2]
+end
+
+function ParticleImage:setAngular(min,max)
+    self.angular = {min, max or min}
+end
+
+function ParticleImage:setImage(image)
+    self.image = image
+    self.table = nil
+end
+
+function ParticleImage:setImageTable(image)
+    self.image = nil
+    self.table = image
+end
+
+function ParticleImage:getImage()
+    return self.image
+end
+
+function ParticleImage:getImageTable()
+    return self.table
+end
+
+function ParticleImage:create(amount)
+    if self.image ~= nil then
+        for i = 1, amount, 1 do
+            local part = {
+                x = self.x,
+                y = self.y,
+                dir = math.random(self.spread[1],self.spread[2]),
+                size = math.random(self.size[1],self.size[2]),
+                speed = math.random(self.speed[1],self.speed[2]),
+                lifespan = math.random(self.lifespan[1],self.lifespan[2]),
+                thickness = math.random(self.thickness[1],self.thickness[2]),
+                angular = math.random(self.angular[1],self.angular[2]),
+                decay = self.decay,
+                image = self.image,
+                rotation = 0
+            }
+
+            self.particles[#self.particles+1] = part
+        end
+    else
+        for i = 1, amount, 1 do
+            local part = {
+                x = self.x,
+                y = self.y,
+                dir = math.random(self.spread[1],self.spread[2]),
+                size = math.random(self.size[1],self.size[2]),
+                speed = math.random(self.speed[1],self.speed[2]),
+                lifespan = math.random(self.lifespan[1],self.lifespan[2]),
+                thickness = math.random(self.thickness[1],self.thickness[2]),
+                angular = math.random(self.angular[1],self.angular[2]),
+                decay = self.decay,
+                image = self.table[math.random(#self.table)],
+                rotation = 0
+            }
+
+            self.particles[#self.particles+1] = part
+        end
+    end
+end
+
+function ParticleImage:add(amount)
+    self:create(amount)
+end
+
+function ParticleImage:update()
+    for part = 1, #self.particles, 1 do
+        local img = self.particles[part]
+
+        img.image:drawRotated(img.x,img.y,img.rotation,img.size)
+
+        img.rotation += img.angular
+
+        img.x += math.sin(math.rad(img.dir)) * img.speed
+        img.y = img.y - math.cos(math.rad(img.dir)) * img.speed
+
+        self.particles[part] = img
+    end
+
+    if self.mode == 1 then
+        local newCircs = decay(self.particles, self.decay)
+        
+    elseif self.mode == 0 then
+        local newCircs = disappear(self.particles)
+        
+    elseif self.mode == 2 then
+        local newCircs = loop(self.particles, self.bounds)
+        
+    else
+        local newCircs = stay(self.particles, self.bounds)
+        
+    end
+end
+
+class("ParticleImageBasic", {type = 3}).extends(ParticleImage)
+
+function ParticleImageBasic:update()
+    for part = 1, #self.particles, 1 do
+        local img = self.particles[part]
+
+        img.image:drawScaled(img.x,img.y,img.size)
+
+        img.rotation += img.angular
+
+        img.x += math.sin(math.rad(img.dir)) * img.speed
+        img.y = img.y - math.cos(math.rad(img.dir)) * img.speed
+
+        self.particles[part] = img
+    end
+
+    if self.mode == 1 then
+        local newCircs = decay(self.particles, self.decay)
+        
+    elseif self.mode == 0 then
+        local newCircs = disappear(self.particles)
+        
+    elseif self.mode == 2 then
+        local newCircs = loop(self.particles, self.bounds)
+        
+    else
+        local newCircs = stay(self.particles, self.bounds)
+        
+    end
+end
 
 -- [[ GLOBAL PARTICLE STUFF ]] --
 
