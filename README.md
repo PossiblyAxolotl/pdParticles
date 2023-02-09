@@ -14,4 +14,4 @@ You can use pdParticles to draw circles, basic shapes, and custom sprites.
 
 Check out the [wiki](https://github.com/PossiblyAxolotl/pdParticles/wiki) to see how to get started and use the library. 
 
-And if you're interested in donating to me you can do so on my [itch.io](https://possiblyaxolotl.itch.io) or through [Stripe](https://donate.stripe.com/8wM3eba7y02L6GIaEG) directly.
+And if you're interested in donating to me you can do so on my [itch.io](https://possiblyaxolotl.itch.io/pdparticles).
