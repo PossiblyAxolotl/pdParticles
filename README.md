@@ -39,9 +39,7 @@ Add pdParticles.lua to the same directory as your main.lua file.
 In your main.lua file add:
 ```lua
 import "CoreLibs/graphics"
-
 import "coreLibs/object"
-
 import "pdParticles"
 ```
 
