@@ -31,6 +31,21 @@ Then, if your code is in the `source` folder, just import the following:
 import '../toyboxes/toyboxes.lua'
 ```
 
+#### Manual installation
+Download the newest version of pdParticles from this repo.
+
+Add pdParticles.lua to the same directory as your main.lua file.
+
+In your main.lua file add:
+```lua
+import "CoreLibs/graphics"
+
+import "coreLibs/object"
+
+import "pdParticles"
+```
+
+More info on the [Getting Started](https://github.com/PossiblyAxolotl/pdParticles/wiki/Getting-Started#setup) page.
 #### Donating
 
-And if you're interested in donating to me you can do so on my [itch.io](https://possiblyaxolotl.itch.io/pdparticles).
+If you're interested in donating to me you can do so on my [itch.io](https://possiblyaxolotl.itch.io/pdparticles).
