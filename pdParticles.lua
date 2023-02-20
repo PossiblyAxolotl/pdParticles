@@ -1,4 +1,5 @@
 local particles = {}
+local precision = 1
 
 -- base particle class
 class("Particle").extends()
@@ -227,9 +228,9 @@ function ParticleCircle:create(amount)
             x = self.x,
             y = self.y,
             dir = math.random(self.spread[1],self.spread[2]),
-            size = math.random(self.size[1],self.size[2]),
-            speed = math.random(self.speed[1],self.speed[2]),
-            lifespan = math.random(self.lifespan[1],self.lifespan[2]),
+            size = math.random(self.size[1],self.size[2]) * precision,
+            speed = math.random(self.speed[1],self.speed[2]) * precision,
+            lifespan = math.random(self.lifespan[1],self.lifespan[2]) * precision,
             thickness = math.random(self.thickness[1],self.thickness[2]),
             decay = self.decay
         }
@@ -310,11 +311,11 @@ function ParticlePoly:create(amount)
             x = self.x,
             y = self.y,
             dir = math.random(self.spread[1],self.spread[2]),
-            size = math.random(self.size[1],self.size[2]),
-            speed = math.random(self.speed[1],self.speed[2]),
-            lifespan = math.random(self.lifespan[1],self.lifespan[2]),
-            thickness = math.random(self.thickness[1],self.thickness[2]),
-            angular = math.random(self.angular[1],self.angular[2]),
+            size = math.random(self.size[1],self.size[2]) * precision,
+            speed = math.random(self.speed[1],self.speed[2]) * precision,
+            lifespan = math.random(self.lifespan[1],self.lifespan[2]) * precision,
+            thickness = math.random(self.thickness[1],self.thickness[2]) * precision,
+            angular = math.random(self.angular[1],self.angular[2]) * precision,
             points = math.random(self.points[1], self.points[2]),
             decay = self.decay,
             rotation = math.random(self.rotation[1],self.rotation[2])
@@ -415,11 +416,11 @@ function ParticleImage:create(amount)
                 x = self.x,
                 y = self.y,
                 dir = math.random(self.spread[1],self.spread[2]),
-                size = math.random(self.size[1],self.size[2]),
-                speed = math.random(self.speed[1],self.speed[2]),
-                lifespan = math.random(self.lifespan[1],self.lifespan[2]),
+                size = math.random(self.size[1],self.size[2]) * precision,
+                speed = math.random(self.speed[1],self.speed[2]) * precision,
+                lifespan = math.random(self.lifespan[1],self.lifespan[2]) * precision,
                 thickness = math.random(self.thickness[1],self.thickness[2]),
-                angular = math.random(self.angular[1],self.angular[2]),
+                angular = math.random(self.angular[1],self.angular[2]) * precision,
                 decay = self.decay,
                 image = self.image,
                 rotation = math.random(self.rotation[1],self.rotation[2])
@@ -433,11 +434,11 @@ function ParticleImage:create(amount)
                 x = self.x,
                 y = self.y,
                 dir = math.random(self.spread[1],self.spread[2]),
-                size = math.random(self.size[1],self.size[2]),
-                speed = math.random(self.speed[1],self.speed[2]),
-                lifespan = math.random(self.lifespan[1],self.lifespan[2]),
+                size = math.random(self.size[1],self.size[2]) * precision,
+                speed = math.random(self.speed[1],self.speed[2]) * precision,
+                lifespan = math.random(self.lifespan[1],self.lifespan[2]) * precision,
                 thickness = math.random(self.thickness[1],self.thickness[2]),
-                angular = math.random(self.angular[1],self.angular[2]),
+                angular = math.random(self.angular[1],self.angular[2]) * precision,
                 decay = self.decay,
                 image = self.table[math.random(#self.table)],
                 rotation = math.random(self.rotation[1],self.rotation[2])
@@ -520,8 +521,8 @@ function ParticlePixel:create(amount)
             x = self.x,
             y = self.y,
             dir = math.random(self.spread[1],self.spread[2]),
-            speed = math.random(self.speed[1],self.speed[2]),
-            lifespan = math.random(self.lifespan[1],self.lifespan[2]),
+            speed = math.random(self.speed[1],self.speed[2]) * precision,
+            lifespan = math.random(self.lifespan[1],self.lifespan[2])  * precision,
         }
 
         self.particles[#self.particles+1] = part
@@ -575,4 +576,12 @@ function Particles:clearAll()
     for part = 1, #particles, 1 do
         particles[part]:clearParticles()
     end
+end
+
+function Particles:setPrecision(prec)
+    precision = prec
+end
+
+function Particles:getPrecision()
+    return precision
 end
