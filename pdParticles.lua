@@ -31,6 +31,15 @@ function Particle:init(x, y)
 
 end
 
+function Particle:remove()
+    for i = 1, #particles, 1 do
+        if particles[i] == self then
+            table.remove(particles, i)
+            break
+        end
+    end
+end
+
 -- [[ SETTERS AND GETTERS ]] --
 
 -- movement
@@ -575,6 +584,13 @@ end
 function Particles:clearAll()
     for part = 1, #particles, 1 do
         particles[part]:clearParticles()
+    end
+end
+
+function Particles:removeAll()
+    local lb = #particles
+    for part = 1, #particles, 1 do
+        particles[part] = nil
     end
 end
 
