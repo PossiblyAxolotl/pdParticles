@@ -172,11 +172,10 @@ local function decay(partlist, decay)
         partlist[part] = particle
     end
 
-    for part = 1, #partlist, 1 do
+    for part = #partlist, 1, -1 do
         local particle = partlist[part]
         if particle.size <= 0 then
             table.remove(partlist,part)
-            break
         end
     end
 
@@ -188,11 +187,10 @@ local function disappear(partlist)
         local particle = partlist[part]
         particle.lifespan -= .1
     end
-    for part = 1, #partlist, 1 do
+    for part = #partlist, 1, -1 do
         local particle = partlist[part]
         if particle.lifespan <= 0 then
             table.remove(partlist,part)
-            break
         end
     end
 
@@ -217,12 +215,12 @@ end
 local function stay(partlist, bounds)
     if bounds[3] > bounds[1] and bounds[4] > bounds[2] then
         local xDif , yDif = bounds[3] - bounds[1], bounds[4] - bounds[2]
-        for part = 1, #partlist, 1 do
+        for part = #partlist, 1, -1 do
             local particle = partlist[part]
-            if particle.x > bounds[3] then table.remove(partlist,part) break
-            elseif particle.x < bounds[1] then table.remove(partlist,part) break
-            elseif particle.y > bounds[4] then table.remove(partlist,part) break
-            elseif particle.y < bounds[2] then table.remove(partlist,part) break end
+            if particle.x > bounds[3] then table.remove(partlist,part)
+            elseif particle.x < bounds[1] then table.remove(partlist,part)
+            elseif particle.y > bounds[4] then table.remove(partlist,part)
+            elseif particle.y < bounds[2] then table.remove(partlist,part) end
         end
     end
 
