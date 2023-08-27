@@ -9,6 +9,7 @@ function Particle:init(x, y)
     self.size = {1,1}
     self.spread = {0,359}
     self.speed = {1,1}
+    self.acceleration = {0, 0}
     self.thickness = {0,0}
     self.lifespan = {1,1}
     self.decay = 1
@@ -91,6 +92,15 @@ end
 
 function Particle:getSpeed()
     return self.speed[1], self.speed[2]
+end
+
+-- acceleration
+function Particle:setAcceleration(min,max)
+    self.acceleration = {min, max or min}
+end
+
+function Particle:getAcceleration()
+    return self.acceleration[1], self.acceleration[2]
 end
 
 -- thickness
@@ -237,6 +247,7 @@ function ParticleCircle:create(amount)
             dir = math.random(self.spread[1],self.spread[2]),
             size = math.random(self.size[1],self.size[2]) * precision,
             speed = math.random(self.speed[1],self.speed[2]) * precision,
+            acceleration = math.random(self.acceleration[1],self.acceleration[2]) * precision,
             lifespan = math.random(self.lifespan[1],self.lifespan[2]) * precision,
             thickness = math.random(self.thickness[1],self.thickness[2]),
             decay = self.decay
@@ -265,6 +276,8 @@ function ParticleCircle:update()
 
         circ.x += math.sin(math.rad(circ.dir)) * circ.speed
         circ.y -= math.cos(math.rad(circ.dir)) * circ.speed
+        
+        circ.speed += circ.acceleration / 100
 
         self.particles[part] = circ
     end
@@ -320,6 +333,7 @@ function ParticlePoly:create(amount)
             dir = math.random(self.spread[1],self.spread[2]),
             size = math.random(self.size[1],self.size[2]) * precision,
             speed = math.random(self.speed[1],self.speed[2]) * precision,
+            acceleration = math.random(self.acceleration[1],self.acceleration[2]) * precision,
             lifespan = math.random(self.lifespan[1],self.lifespan[2]) * precision,
             thickness = math.random(self.thickness[1],self.thickness[2]) * precision,
             angular = math.random(self.angular[1],self.angular[2]) * precision,
@@ -359,6 +373,8 @@ function ParticlePoly:update()
         poly.y = poly.y - math.cos(math.rad(poly.dir)) * poly.speed
 
         poly.rotation += poly.angular
+        
+        poly.speed += poly.acceleration / 100
 
         self.particles[part] = poly
     end
@@ -425,6 +441,7 @@ function ParticleImage:create(amount)
                 dir = math.random(self.spread[1],self.spread[2]),
                 size = math.random(self.size[1],self.size[2]) * precision,
                 speed = math.random(self.speed[1],self.speed[2]) * precision,
+                acceleration = math.random(self.acceleration[1],self.acceleration[2]) * precision,
                 lifespan = math.random(self.lifespan[1],self.lifespan[2]) * precision,
                 thickness = math.random(self.thickness[1],self.thickness[2]),
                 angular = math.random(self.angular[1],self.angular[2]) * precision,
@@ -443,6 +460,7 @@ function ParticleImage:create(amount)
                 dir = math.random(self.spread[1],self.spread[2]),
                 size = math.random(self.size[1],self.size[2]) * precision,
                 speed = math.random(self.speed[1],self.speed[2]) * precision,
+                acceleration = math.random(self.acceleration[1],self.acceleration[2]) * precision,
                 lifespan = math.random(self.lifespan[1],self.lifespan[2]) * precision,
                 thickness = math.random(self.thickness[1],self.thickness[2]),
                 angular = math.random(self.angular[1],self.angular[2]) * precision,
@@ -470,6 +488,8 @@ function ParticleImage:update()
 
         img.x += math.sin(math.rad(img.dir)) * img.speed
         img.y = img.y - math.cos(math.rad(img.dir)) * img.speed
+        
+        img.speed += img.acceleration / 100
 
         self.particles[part] = img
     end
@@ -502,6 +522,8 @@ function ParticleImageBasic:update()
         img.x += math.sin(math.rad(img.dir)) * img.speed
         img.y = img.y - math.cos(math.rad(img.dir)) * img.speed
 
+        img.speed += img.acceleration / 100
+
         self.particles[part] = img
     end
 
@@ -529,6 +551,7 @@ function ParticlePixel:create(amount)
             y = self.y,
             dir = math.random(self.spread[1],self.spread[2]),
             speed = math.random(self.speed[1],self.speed[2]) * precision,
+            acceleration = math.random(self.acceleration[1],self.acceleration[2]) * precision,
             lifespan = math.random(self.lifespan[1],self.lifespan[2])  * precision,
         }
 
@@ -550,6 +573,8 @@ function ParticlePixel:update()
 
         pix.x += math.sin(math.rad(pix.dir)) * pix.speed
         pix.y -= math.cos(math.rad(pix.dir)) * pix.speed
+        
+        pix.speed += pix.acceleration / 100
 
         self.particles[part] = pix
     end
