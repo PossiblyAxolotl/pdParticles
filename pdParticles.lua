@@ -138,6 +138,24 @@ function Particle:getColour()
     return self.colour
 end
 
+
+-- colour
+function Particle:setStrokeColor(colour)
+    self.strokeColour = colour
+end
+
+function Particle:getStrokeColor()
+    return self.strokeColour
+end
+
+function Particle:setStrokeColour(colour)
+    self.strokeColour = colour
+end
+
+function Particle:getStrokeColour()
+    return self.strokeColour
+end
+
 -- bounds
 function Particle:setBounds(x1, y1, x2, y2)
     self.bounds = {x1,y1,x2,y2}
@@ -268,7 +286,14 @@ function ParticleCircle:update()
     for part = 1, #self.particles, 1 do
         local circ = self.particles[part]
         if circ.thickness < 1 then
+            playdate.graphics.setColor(self.colour)
             playdate.graphics.fillCircleAtPoint(circ.x,circ.y,circ.size)
+        elseif self.strokeColour ~= nil then
+            playdate.graphics.setColor(self.colour)
+            playdate.graphics.fillCircleAtPoint(circ.x,circ.y,circ.size)
+            playdate.graphics.setLineWidth(circ.thickness)
+            playdate.graphics.setColor(self.strokeColour)
+            playdate.graphics.drawCircleAtPoint(circ.x, circ.y, circ.size)
         else
             playdate.graphics.setLineWidth(circ.thickness)
             playdate.graphics.drawCircleAtPoint(circ.x, circ.y, circ.size)
