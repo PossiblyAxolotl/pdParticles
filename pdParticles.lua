@@ -1,9 +1,11 @@
 local particles = {}
 local precision = 1
+local particle_pool_size = 1
 
 -- base particle class
 class("Particle").extends()
-function Particle:init(x, y)
+function Particle:init(x, y, pool_size)
+    pool_size = pool_size or particle_pool_size
     self.x = x or 0
     self.y = y or 0
     self.size = {1,1}
@@ -13,7 +15,6 @@ function Particle:init(x, y)
     self.thickness = {0,0}
     self.lifespan = {1,1}
     self.decay = 1
-    self.particles = {}
     self.colour = playdate.graphics.kColorBlack
     self.bounds = {0,0,0,0}
     self.mode = 0
@@ -28,16 +29,38 @@ function Particle:init(x, y)
         self.rotation = {0,359}
     end
 
+    self.partlist = table.create(pool_size, 0)
+    self.active = table.create(pool_size, 0)
+    self.available = table.create(pool_size, 0)
+    for index = 1, pool_size do
+        self.available[index] = index
+    end
+    self:create(pool_size)
     particles[#particles+1] = self
-
 end
 
-function Particle:remove()
-    for i = 1, #particles, 1 do
-        if particles[i] == self then
-            table.remove(particles, i)
-            break
-        end
+function Particle:resetPart(part)
+    part = part or {}
+    -- Stub function, should be overridden by child classes
+    return part or {}
+end
+
+function Particle:create(amount)
+    for index = 1, amount do
+        self.partlist[#self.partlist + 1] = self:resetPart()
+        self.available[index] = #self.partlist
+    end
+end
+
+function Particle:add(amount)
+    if #self.available - amount < 0 then
+        self:create(amount - #self.available)
+    end
+
+    for _ = 1, amount do
+        local index = table.remove(self.available)
+        table.insert(self.active, index)
+        self.partlist[index] = self:resetPart(self.partlist[index])
     end
 end
 
@@ -163,6 +186,8 @@ end
 
 function Particle:clearParticles()
     self.particles = {}
+    self.active = {}
+    self.available = {}
 end
 
 function Particle:update()
@@ -170,103 +195,90 @@ end
 
 -- [[ PARTICLE MODES ]] --
 
-local function decay(partlist, decay)
-    for part = 1, #partlist, 1 do
-        local particle = partlist[part]
-        particle.size -= decay
-
-        if particle.size <= 0 then
-            particle.size = 0
-        end
-
-        partlist[part] = particle
-    end
-
-    for part = #partlist, 1, -1 do
-        local particle = partlist[part]
-        if particle.size <= 0 then
-            table.remove(partlist,part)
-        end
-    end
-
-    return partlist
+local function remove(index, active, available)
+    table.insert(available, index)
+    table.remove(active, index)
 end
 
-local function disappear(partlist)
-    for part = 1, #partlist, 1 do
-        local particle = partlist[part]
+local function decay(parts, active, available)
+    for i = #active, 1, -1 do
+        local index = active[i]
+        local part = parts[index]
+        part.size -= decay
+
+        if part.size <= 0 then
+            part.size = 0
+            remove(i, active, available)
+        end
+    end
+end
+
+local function disappear(partlist, active, available)
+    for i = #active, 1, -1 do
+        local index = active[i]
+        local particle = partlist[index]
         particle.lifespan -= .1
-    end
-    for part = #partlist, 1, -1 do
-        local particle = partlist[part]
+
         if particle.lifespan <= 0 then
-            table.remove(partlist,part)
+            remove(i, active, available)
         end
     end
-
-    return partlist
 end
 
-local function loop(partlist, bounds)
+local function loop(partlist, active, _, bounds)
     if bounds[3] > bounds[1] and bounds[4] > bounds[2] then
         local xDif , yDif = bounds[3] - bounds[1], bounds[4] - bounds[2]
-        for part = 1, #partlist, 1 do
-            local particle = partlist[part]
+        for index = 1, #active, 1 do
+            local particle = partlist[active[index]]
             if particle.x > bounds[3] then particle.x -= xDif
             elseif particle.x < bounds[1] then particle.x += xDif end
             if particle.y > bounds[4] then particle.y -= yDif
             elseif particle.y < bounds[2] then particle.y += yDif end
         end
     end
-
-    return partlist
 end
 
-local function stay(partlist, bounds)
+local function stay(partlist, active, available, bounds)
     if bounds[3] > bounds[1] and bounds[4] > bounds[2] then
-        local xDif , yDif = bounds[3] - bounds[1], bounds[4] - bounds[2]
-        for part = #partlist, 1, -1 do
-            local particle = partlist[part]
-            if particle.x > bounds[3] then table.remove(partlist,part)
-            elseif particle.x < bounds[1] then table.remove(partlist,part)
-            elseif particle.y > bounds[4] then table.remove(partlist,part)
-            elseif particle.y < bounds[2] then table.remove(partlist,part) end
+        for i = #active, 1, -1 do
+            local index = active[i]
+            local particle = partlist[index]
+            if particle.x > bounds[3] then
+                remove(i, active, available)
+            elseif particle.x < bounds[1] then
+                remove(i, active, available)
+            elseif particle.y > bounds[4] then
+                remove(i, active, available)
+            elseif particle.y < bounds[2] then
+                remove(i, active, available)
+            end
         end
     end
-
-    return partlist
 end
 
 class("ParticleCircle", {type = 1}).extends(Particle)
 
-function ParticleCircle:create(amount)
-    for i = 1, amount, 1 do
-        local part = {
-            x = self.x,
-            y = self.y,
-            dir = math.random(self.spread[1],self.spread[2]),
-            size = math.random(self.size[1],self.size[2]) * precision,
-            speed = math.random(self.speed[1],self.speed[2]) * precision,
-            acceleration = math.random(self.acceleration[1],self.acceleration[2]) * precision,
-            lifespan = math.random(self.lifespan[1],self.lifespan[2]) * precision,
-            thickness = math.random(self.thickness[1],self.thickness[2]),
-            decay = self.decay
-        }
-
-        self.particles[#self.particles+1] = part
-    end
-end
-
-function ParticleCircle:add(amount)
-    self:create(amount)
+function ParticleCircle:resetPart(part)
+    part = part or {}
+    part.x = self.x
+    part.y = self.y
+    part.dir = math.random(self.spread[1],self.spread[2])
+    part.size = math.random(self.size[1],self.size[2]) * precision
+    part.speed = math.random(self.speed[1],self.speed[2]) * precision
+    part.acceleration = math.random(self.acceleration[1],self.acceleration[2]) * precision
+    part.lifespan = math.random(self.lifespan[1],self.lifespan[2]) * precision
+    part.thickness = math.random(self.thickness[1],self.thickness[2])
+    part.decay = self.decay
+    return part
 end
 
 function ParticleCircle:update()
     local w = playdate.graphics.getLineWidth()
     local c = playdate.graphics.getColor()
     playdate.graphics.setColor(self.colour)
-    for part = 1, #self.particles, 1 do
-        local circ = self.particles[part]
+    for i = #self.active, 1, -1 do
+        local index = self.active[i]
+        local circ = self.partlist[index]
         if circ.thickness < 1 then
             playdate.graphics.fillCircleAtPoint(circ.x,circ.y,circ.size)
         else
@@ -276,25 +288,25 @@ function ParticleCircle:update()
 
         circ.x += math.sin(math.rad(circ.dir)) * circ.speed
         circ.y -= math.cos(math.rad(circ.dir)) * circ.speed
-        
+
         circ.speed += circ.acceleration / 100
 
-        self.particles[part] = circ
+        self.partlist[index] = circ
     end
     playdate.graphics.setLineWidth(w)
     playdate.graphics.setColor(c)
     if self.mode == 1 then
         decay(self.particles, self.decay)
-        
+
     elseif self.mode == 0 then
-        disappear(self.particles)
-        
+        disappear(self.partlist, self.active, self.available)
+
     elseif self.mode == 2 then
         loop(self.particles, self.bounds)
-        
+
     else
         stay(self.particles, self.bounds)
-        
+
     end
 end
 
@@ -325,29 +337,21 @@ function ParticlePoly:setRotation(min,max)
     self.rotation = {min, max or min}
 end
 
-function ParticlePoly:create(amount)
-    for i = 1, amount, 1 do
-        local part = {
-            x = self.x,
-            y = self.y,
-            dir = math.random(self.spread[1],self.spread[2]),
-            size = math.random(self.size[1],self.size[2]) * precision,
-            speed = math.random(self.speed[1],self.speed[2]) * precision,
-            acceleration = math.random(self.acceleration[1],self.acceleration[2]) * precision,
-            lifespan = math.random(self.lifespan[1],self.lifespan[2]) * precision,
-            thickness = math.random(self.thickness[1],self.thickness[2]) * precision,
-            angular = math.random(self.angular[1],self.angular[2]) * precision,
-            points = math.random(self.points[1], self.points[2]),
-            decay = self.decay,
-            rotation = math.random(self.rotation[1],self.rotation[2])
-        }
-
-        self.particles[#self.particles+1] = part
-    end
-end
-
-function ParticlePoly:add(amount)
-    self:create(amount)
+function ParticlePoly:reset(part)
+    part = part or {}
+    part.x = self.x
+    part.y = self.y
+    part.dir = math.random(self.spread[1],self.spread[2])
+    part.size = math.random(self.size[1],self.size[2]) * precision
+    part.speed = math.random(self.speed[1],self.speed[2]) * precision
+    part.acceleration = math.random(self.acceleration[1],self.acceleration[2]) * precision
+    part.lifespan = math.random(self.lifespan[1],self.lifespan[2]) * precision
+    part.thickness = math.random(self.thickness[1],self.thickness[2]) * precision
+    part.angular = math.random(self.angular[1],self.angular[2]) * precision
+    part.points = math.random(self.points[1], self.points[2])
+    part.decay = self.decay
+    part.rotation = math.random(self.rotation[1],self.rotation[2])
+    return part
 end
 
 function ParticlePoly:update()
@@ -373,7 +377,7 @@ function ParticlePoly:update()
         poly.y = poly.y - math.cos(math.rad(poly.dir)) * poly.speed
 
         poly.rotation += poly.angular
-        
+
         poly.speed += poly.acceleration / 100
 
         self.particles[part] = poly
@@ -383,16 +387,16 @@ function ParticlePoly:update()
 
     if self.mode == 1 then
         decay(self.particles, self.decay)
-        
+
     elseif self.mode == 0 then
         disappear(self.particles)
-        
+
     elseif self.mode == 2 then
         loop(self.particles, self.bounds)
-        
+
     else
         stay(self.particles, self.bounds)
-        
+
     end
 end
 
@@ -432,50 +436,22 @@ function ParticleImage:getImageTable()
     return self.table
 end
 
-function ParticleImage:create(amount)
-    if self.image ~= nil then
-        for i = 1, amount, 1 do
-            local part = {
-                x = self.x,
-                y = self.y,
-                dir = math.random(self.spread[1],self.spread[2]),
-                size = math.random(self.size[1],self.size[2]) * precision,
-                speed = math.random(self.speed[1],self.speed[2]) * precision,
-                acceleration = math.random(self.acceleration[1],self.acceleration[2]) * precision,
-                lifespan = math.random(self.lifespan[1],self.lifespan[2]) * precision,
-                thickness = math.random(self.thickness[1],self.thickness[2]),
-                angular = math.random(self.angular[1],self.angular[2]) * precision,
-                decay = self.decay,
-                image = self.image,
-                rotation = math.random(self.rotation[1],self.rotation[2])
-            }
-
-            self.particles[#self.particles+1] = part
-        end
-    else
-        for i = 1, amount, 1 do
-            local part = {
-                x = self.x,
-                y = self.y,
-                dir = math.random(self.spread[1],self.spread[2]),
-                size = math.random(self.size[1],self.size[2]) * precision,
-                speed = math.random(self.speed[1],self.speed[2]) * precision,
-                acceleration = math.random(self.acceleration[1],self.acceleration[2]) * precision,
-                lifespan = math.random(self.lifespan[1],self.lifespan[2]) * precision,
-                thickness = math.random(self.thickness[1],self.thickness[2]),
-                angular = math.random(self.angular[1],self.angular[2]) * precision,
-                decay = self.decay,
-                image = self.table[math.random(#self.table)],
-                rotation = math.random(self.rotation[1],self.rotation[2])
-            }
-
-            self.particles[#self.particles+1] = part
-        end
-    end
-end
-
-function ParticleImage:add(amount)
-    self:create(amount)
+function ParticleImage:resetPart(part)
+    part = part or {}
+    part.x = self.x
+    part.y = self.y
+    part.dir = math.random(self.spread[1],self.spread[2])
+    part.size = math.random(self.size[1],self.size[2]) * precision
+    part.speed = math.random(self.speed[1],self.speed[2]) * precision
+    part.acceleration = math.random(self.acceleration[1],self.acceleration[2]) * precision
+    part.acceleration = math.random(self.acceleration[1],self.acceleration[2]) * precision
+    part.lifespan = math.random(self.lifespan[1],self.lifespan[2]) * precision
+    part.thickness = math.random(self.thickness[1],self.thickness[2])
+    part.angular = math.random(self.angular[1],self.angular[2]) * precision
+    part.decay = self.decay
+    part.image = self.image
+    part.rotation = math.random(self.rotation[1],self.rotation[2])
+    return part
 end
 
 function ParticleImage:update()
@@ -488,7 +464,7 @@ function ParticleImage:update()
 
         img.x += math.sin(math.rad(img.dir)) * img.speed
         img.y = img.y - math.cos(math.rad(img.dir)) * img.speed
-        
+
         img.speed += img.acceleration / 100
 
         self.particles[part] = img
@@ -496,16 +472,16 @@ function ParticleImage:update()
 
     if self.mode == 1 then
         decay(self.particles, self.decay)
-        
+
     elseif self.mode == 0 then
         disappear(self.particles)
-        
+
     elseif self.mode == 2 then
         loop(self.particles, self.bounds)
-        
+
     else
         stay(self.particles, self.bounds)
-        
+
     end
 end
 
@@ -529,38 +505,31 @@ function ParticleImageBasic:update()
 
     if self.mode == 1 then
         decay(self.particles, self.decay)
-        
+
     elseif self.mode == 0 then
         disappear(self.particles)
-        
+
     elseif self.mode == 2 then
         loop(self.particles, self.bounds)
-        
+
     else
         stay(self.particles, self.bounds)
-        
+
     end
 end
 
 class("ParticlePixel").extends(Particle)
 
-function ParticlePixel:create(amount)
-    for i = 1, amount, 1 do
-        local part = {
-            x = self.x,
-            y = self.y,
-            dir = math.random(self.spread[1],self.spread[2]),
-            speed = math.random(self.speed[1],self.speed[2]) * precision,
-            acceleration = math.random(self.acceleration[1],self.acceleration[2]) * precision,
-            lifespan = math.random(self.lifespan[1],self.lifespan[2])  * precision,
-        }
-
-        self.particles[#self.particles+1] = part
-    end
-end
-
-function ParticlePixel:add(amount)
-    self:create(amount)
+function ParticlePixel:resetPart(part)
+    part = part or {}
+    part.x = self.x
+    part.y = self.y
+    part.dir = math.random(self.spread[1],self.spread[2])
+    part.size = math.random(self.size[1],self.size[2]) * precision
+    part.speed = math.random(self.speed[1],self.speed[2]) * precision
+    part.acceleration = math.random(self.acceleration[1],self.acceleration[2]) * precision
+    part.lifespan = math.random(self.lifespan[1],self.lifespan[2]) * precision
+    return part
 end
 
 function ParticlePixel:update()
@@ -568,12 +537,12 @@ function ParticlePixel:update()
     playdate.graphics.setColor(self.colour)
     for part = 1, #self.particles, 1 do
         local pix = self.particles[part]
-        
+
         playdate.graphics.drawPixel(pix.x,pix.y,pix.size)
 
         pix.x += math.sin(math.rad(pix.dir)) * pix.speed
         pix.y -= math.cos(math.rad(pix.dir)) * pix.speed
-        
+
         pix.speed += pix.acceleration / 100
 
         self.particles[part] = pix
@@ -582,13 +551,13 @@ function ParticlePixel:update()
 
     if self.mode == 0 then
         disappear(self.particles)
-        
+
     elseif self.mode == 2 then
         loop(self.particles, self.bounds)
-        
+
     else
         stay(self.particles, self.bounds)
-        
+
     end
 end
 
@@ -623,4 +592,12 @@ end
 
 function Particles:getPrecision()
     return precision
+end
+
+function Particles:setParticlePoolSize(size)
+    particle_pool_size = size
+end
+
+function Particles:getParticlePoolSize()
+    return particle_pool_size
 end
