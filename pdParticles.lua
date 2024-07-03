@@ -1,6 +1,6 @@
 local particles = {}
 local precision = 1
-local particle_pool_size = 1
+local particle_pool_size = 25
 
 -- base particle class
 class("Particle").extends()
