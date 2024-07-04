@@ -5,7 +5,7 @@
 local showFPS <const> = false -- SET TO 'true' TO SEE FPS
 
 import "CoreLibs/graphics"
-import "coreLibs/object"
+import "CoreLibs/object"
 import "pdParticles"
 
 local gfx <const> = playdate.graphics
@@ -29,9 +29,9 @@ function menu()
     gfx.clear()
     gfx.drawText("Press A to Play", 200 - gfx.getTextSize("Press A to Play") / 2, 120)
 
-    if playdate.buttonJustPressed(playdate.kButtonA) then 
-        playdate.update = game 
-        partObstacles:add(30) 
+    if playdate.buttonJustPressed(playdate.kButtonA) then
+        playdate.update = game
+        partObstacles:add(30)
     end
 end
 
@@ -39,7 +39,7 @@ end
 function game()
 
     -- [[ UPDATE ]] --
-    
+
     -- set the player's position based on player input
     local changeX, changeY = 0, 0
     if playdate.buttonIsPressed(playdate.kButtonUp) then

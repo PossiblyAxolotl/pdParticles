@@ -1,7 +1,7 @@
 local gfx <const> = playdate.graphics
 
-import "coreLibs/graphics"
-import "coreLibs/object"
+import "CoreLibs/graphics"
+import "CoreLibs/object"
 import "pdParticles"
 
 local speed = 3
@@ -26,8 +26,6 @@ function playdate.update()
     gfx.clear()
     part:add(1)
     Particles:update()
-
-    print(#part:getParticles())
 
     local vel = {0,0}
 
