@@ -39,16 +39,16 @@ function Particle:init(x, y, pool_size)
     particles[#particles+1] = self
 end
 
-function Particle:resetPart(part)
+function Particle:default(part)
     part = part or {}
     -- Stub function, should be overridden by child classes
     return part or {}
 end
 
 function Particle:create(amount)
-    for index = 1, amount do
-        self.partlist[#self.partlist + 1] = self:resetPart()
-        self.available[index] = #self.partlist
+    for _ = 1, amount do
+        self.partlist[#self.partlist + 1] = self:default()
+        table.insert(self.available, #self.partlist)
     end
 end
 
@@ -60,7 +60,7 @@ function Particle:add(amount)
     for _ = 1, amount do
         local index = table.remove(self.available)
         table.insert(self.active, index)
-        self.partlist[index] = self:resetPart(self.partlist[index])
+        self.partlist[index] = self:default(self.partlist[index])
     end
 end
 
@@ -258,7 +258,7 @@ end
 
 class("ParticleCircle", {type = 1}).extends(Particle)
 
-function ParticleCircle:resetPart(part)
+function ParticleCircle:default(part)
     part = part or {}
     part.x = self.x
     part.y = self.y
@@ -297,16 +297,12 @@ function ParticleCircle:update()
     playdate.graphics.setColor(c)
     if self.mode == 1 then
         decay(self.particles, self.decay)
-
     elseif self.mode == 0 then
         disappear(self.partlist, self.active, self.available)
-
     elseif self.mode == 2 then
-        loop(self.particles, self.bounds)
-
+        loop(self.partlist, self.active, nil, self.bounds)
     else
-        stay(self.particles, self.bounds)
-
+        stay(self.partlist, self.active, self.available, self.bounds)
     end
 end
 
@@ -337,7 +333,7 @@ function ParticlePoly:setRotation(min,max)
     self.rotation = {min, max or min}
 end
 
-function ParticlePoly:reset(part)
+function ParticlePoly:default(part)
     part = part or {}
     part.x = self.x
     part.y = self.y
@@ -436,7 +432,7 @@ function ParticleImage:getImageTable()
     return self.table
 end
 
-function ParticleImage:resetPart(part)
+function ParticleImage:default(part)
     part = part or {}
     part.x = self.x
     part.y = self.y
@@ -520,7 +516,7 @@ end
 
 class("ParticlePixel").extends(Particle)
 
-function ParticlePixel:resetPart(part)
+function ParticlePixel:default(part)
     part = part or {}
     part.x = self.x
     part.y = self.y
