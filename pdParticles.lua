@@ -32,9 +32,6 @@ function Particle:init(x, y, pool_size)
     self.partlist = table.create(pool_size, 0)
     self.active = table.create(pool_size, 0)
     self.available = table.create(pool_size, 0)
-    for index = 1, pool_size do
-        self.available[index] = index
-    end
     self:create(pool_size)
     table.insert(particles, self)
 end
