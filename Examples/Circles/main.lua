@@ -1,7 +1,7 @@
 local gfx <const> = playdate.graphics
 
-import "coreLibs/graphics"
-import "coreLibs/object"
+import "CoreLibs/graphics"
+import "CoreLibs/object"
 import "pdParticles"
 
 local particleA = ParticleCircle(200, 120)
