@@ -36,7 +36,7 @@ function Particle:init(x, y, pool_size)
         self.available[index] = index
     end
     self:create(pool_size)
-    particles[#particles+1] = self
+    table.insert(particles, self)
 end
 
 function Particle:default(part)
@@ -181,11 +181,15 @@ end
 
 -- particles
 function Particle:getParticles()
-    return self.particles
+    return self.partlist
+end
+
+function Particle:getActive()
+    return self.active
 end
 
 function Particle:clearParticles()
-    self.particles = {}
+    self.partlist = {}
     self.active = {}
     self.available = {}
 end
@@ -200,7 +204,7 @@ local function remove(index, active, available)
     table.remove(active, index)
 end
 
-local function decay(parts, active, available)
+local function decay(parts, active, available, decay)
     for i = #active, 1, -1 do
         local index = active[i]
         local part = parts[index]
@@ -296,7 +300,7 @@ function ParticleCircle:update()
     playdate.graphics.setLineWidth(w)
     playdate.graphics.setColor(c)
     if self.mode == 1 then
-        decay(self.particles, self.decay)
+        decay(self.partlist, self.active, self.available, self.decay)
     elseif self.mode == 0 then
         disappear(self.partlist, self.active, self.available)
     elseif self.mode == 2 then
@@ -354,8 +358,9 @@ function ParticlePoly:update()
     local w = playdate.graphics.getLineWidth()
     local c = playdate.graphics.getColor()
     playdate.graphics.setColor(self.colour)
-    for part = 1, #self.particles, 1 do
-        local poly = self.particles[part]
+    for i = #self.active, 1, -1 do
+        local index = self.active[i]
+        local poly = self.partlist[index]
         local polygon = {}
         local degrees = 360 / poly.points
         for point = 1, poly.points, 1 do
@@ -376,23 +381,19 @@ function ParticlePoly:update()
 
         poly.speed += poly.acceleration / 100
 
-        self.particles[part] = poly
+        self.partlist[index] = poly
     end
     playdate.graphics.setLineWidth(w)
     playdate.graphics.setColor(c)
 
     if self.mode == 1 then
-        decay(self.particles, self.decay)
-
+        decay(self.partlist, self.active, self.available, self.decay)
     elseif self.mode == 0 then
-        disappear(self.particles)
-
+        disappear(self.partlist, self.active, self.available)
     elseif self.mode == 2 then
-        loop(self.particles, self.bounds)
-
+        loop(self.partlist, self.active, self.available, self.bounds)
     else
-        stay(self.particles, self.bounds)
-
+        stay(self.partlist, self.active, self.available, self.bounds)
     end
 end
 
@@ -451,8 +452,9 @@ function ParticleImage:default(part)
 end
 
 function ParticleImage:update()
-    for part = 1, #self.particles, 1 do
-        local img = self.particles[part]
+    for i = #self.active, 1, -1 do
+        local index = self.active[i]
+        local img = self.partlist[index]
 
         img.image:drawRotated(img.x,img.y,img.rotation,img.size)
 
@@ -463,29 +465,26 @@ function ParticleImage:update()
 
         img.speed += img.acceleration / 100
 
-        self.particles[part] = img
+        self.partlist[index] = img
     end
 
     if self.mode == 1 then
-        decay(self.particles, self.decay)
-
+        decay(self.partlist, self.active, self.available, self.decay)
     elseif self.mode == 0 then
-        disappear(self.particles)
-
+        disappear(self.partlist, self.active, self.available)
     elseif self.mode == 2 then
-        loop(self.particles, self.bounds)
-
+        loop(self.partlist, self.active, nil, self.bounds)
     else
-        stay(self.particles, self.bounds)
-
+        stay(self.partlist, self.active, self.available, self.bounds)
     end
 end
 
 class("ParticleImageBasic", {type = 3}).extends(ParticleImage)
 
 function ParticleImageBasic:update()
-    for part = 1, #self.particles, 1 do
-        local img = self.particles[part]
+    for i = #self.active, 1, -1 do
+        local index = self.active[i]
+        local img = self.partlist[index]
 
         img.image:drawScaled(img.x,img.y,img.size)
 
@@ -496,21 +495,17 @@ function ParticleImageBasic:update()
 
         img.speed += img.acceleration / 100
 
-        self.particles[part] = img
+        self.partlist[index] = img
     end
 
     if self.mode == 1 then
-        decay(self.particles, self.decay)
-
+        decay(self.partlist, self.decay)
     elseif self.mode == 0 then
-        disappear(self.particles)
-
+        disappear(self.partlist)
     elseif self.mode == 2 then
-        loop(self.particles, self.bounds)
-
+        loop(self.partlist, self.bounds)
     else
-        stay(self.particles, self.bounds)
-
+        stay(self.partlist, self.bounds)
     end
 end
 
@@ -531,8 +526,9 @@ end
 function ParticlePixel:update()
     local c = playdate.graphics.getColor()
     playdate.graphics.setColor(self.colour)
-    for part = 1, #self.particles, 1 do
-        local pix = self.particles[part]
+    for i = #self.active, 1, -1 do
+        local index = self.active[i]
+        local pix = self.partlist[index]
 
         playdate.graphics.drawPixel(pix.x,pix.y,pix.size)
 
@@ -541,19 +537,16 @@ function ParticlePixel:update()
 
         pix.speed += pix.acceleration / 100
 
-        self.particles[part] = pix
+        self.partlist[index] = pix
     end
     playdate.graphics.setColor(c)
 
     if self.mode == 0 then
-        disappear(self.particles)
-
+        disappear(self.partlist, self.active, self.available)
     elseif self.mode == 2 then
-        loop(self.particles, self.bounds)
-
+        loop(self.partlist, self.active, nil, self.bounds)
     else
-        stay(self.particles, self.bounds)
-
+        stay(self.partlist, self.active, self.available, self.bounds)
     end
 end
 
