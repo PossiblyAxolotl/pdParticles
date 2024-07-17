@@ -602,6 +602,12 @@ function Particles:update()
     for particle = 1, #particles, 1 do
         particles[particle]:update()
     end
+
+    for particle = #particles, 1, -1 do
+        if #particles[particle].particles == 0 then
+            table.remove(particles, particle)
+        end
+    end
 end
 
 function Particles:clearAll()
