@@ -1,4 +1,5 @@
 local particles = {}
+local precision = 1
 
 -- base particle class
 class("Particle").extends()
@@ -8,6 +9,7 @@ function Particle:init(x, y)
     self.size = {1,1}
     self.spread = {0,359}
     self.speed = {1,1}
+    self.acceleration = {0, 0}
     self.thickness = {0,0}
     self.lifespan = {1,1}
     self.decay = 1
@@ -28,6 +30,15 @@ function Particle:init(x, y)
 
     particles[#particles+1] = self
 
+end
+
+function Particle:remove()
+    for i = 1, #particles, 1 do
+        if particles[i] == self then
+            table.remove(particles, i)
+            break
+        end
+    end
 end
 
 -- [[ SETTERS AND GETTERS ]] --
@@ -81,6 +92,15 @@ end
 
 function Particle:getSpeed()
     return self.speed[1], self.speed[2]
+end
+
+-- acceleration
+function Particle:setAcceleration(min,max)
+    self.acceleration = {min, max or min}
+end
+
+function Particle:getAcceleration()
+    return self.acceleration[1], self.acceleration[2]
 end
 
 -- thickness
@@ -162,11 +182,10 @@ local function decay(partlist, decay)
         partlist[part] = particle
     end
 
-    for part = 1, #partlist, 1 do
+    for part = #partlist, 1, -1 do
         local particle = partlist[part]
         if particle.size <= 0 then
             table.remove(partlist,part)
-            break
         end
     end
 
@@ -178,11 +197,10 @@ local function disappear(partlist)
         local particle = partlist[part]
         particle.lifespan -= .1
     end
-    for part = 1, #partlist, 1 do
+    for part = #partlist, 1, -1 do
         local particle = partlist[part]
         if particle.lifespan <= 0 then
             table.remove(partlist,part)
-            break
         end
     end
 
@@ -207,12 +225,12 @@ end
 local function stay(partlist, bounds)
     if bounds[3] > bounds[1] and bounds[4] > bounds[2] then
         local xDif , yDif = bounds[3] - bounds[1], bounds[4] - bounds[2]
-        for part = 1, #partlist, 1 do
+        for part = #partlist, 1, -1 do
             local particle = partlist[part]
-            if particle.x > bounds[3] then table.remove(partlist,part) break
-            elseif particle.x < bounds[1] then table.remove(partlist,part) break
-            elseif particle.y > bounds[4] then table.remove(partlist,part) break
-            elseif particle.y < bounds[2] then table.remove(partlist,part) break end
+            if particle.x > bounds[3] then table.remove(partlist,part)
+            elseif particle.x < bounds[1] then table.remove(partlist,part)
+            elseif particle.y > bounds[4] then table.remove(partlist,part)
+            elseif particle.y < bounds[2] then table.remove(partlist,part) end
         end
     end
 
@@ -227,9 +245,10 @@ function ParticleCircle:create(amount)
             x = self.x,
             y = self.y,
             dir = math.random(self.spread[1],self.spread[2]),
-            size = math.random(self.size[1],self.size[2]),
-            speed = math.random(self.speed[1],self.speed[2]),
-            lifespan = math.random(self.lifespan[1],self.lifespan[2]),
+            size = math.random(self.size[1],self.size[2]) * precision,
+            speed = math.random(self.speed[1],self.speed[2]) * precision,
+            acceleration = math.random(self.acceleration[1],self.acceleration[2]) * precision,
+            lifespan = math.random(self.lifespan[1],self.lifespan[2]) * precision,
             thickness = math.random(self.thickness[1],self.thickness[2]),
             decay = self.decay
         }
@@ -257,6 +276,8 @@ function ParticleCircle:update()
 
         circ.x += math.sin(math.rad(circ.dir)) * circ.speed
         circ.y -= math.cos(math.rad(circ.dir)) * circ.speed
+        
+        circ.speed += circ.acceleration / 100
 
         self.particles[part] = circ
     end
@@ -310,11 +331,12 @@ function ParticlePoly:create(amount)
             x = self.x,
             y = self.y,
             dir = math.random(self.spread[1],self.spread[2]),
-            size = math.random(self.size[1],self.size[2]),
-            speed = math.random(self.speed[1],self.speed[2]),
-            lifespan = math.random(self.lifespan[1],self.lifespan[2]),
-            thickness = math.random(self.thickness[1],self.thickness[2]),
-            angular = math.random(self.angular[1],self.angular[2]),
+            size = math.random(self.size[1],self.size[2]) * precision,
+            speed = math.random(self.speed[1],self.speed[2]) * precision,
+            acceleration = math.random(self.acceleration[1],self.acceleration[2]) * precision,
+            lifespan = math.random(self.lifespan[1],self.lifespan[2]) * precision,
+            thickness = math.random(self.thickness[1],self.thickness[2]) * precision,
+            angular = math.random(self.angular[1],self.angular[2]) * precision,
             points = math.random(self.points[1], self.points[2]),
             decay = self.decay,
             rotation = math.random(self.rotation[1],self.rotation[2])
@@ -351,6 +373,8 @@ function ParticlePoly:update()
         poly.y = poly.y - math.cos(math.rad(poly.dir)) * poly.speed
 
         poly.rotation += poly.angular
+        
+        poly.speed += poly.acceleration / 100
 
         self.particles[part] = poly
     end
@@ -415,11 +439,12 @@ function ParticleImage:create(amount)
                 x = self.x,
                 y = self.y,
                 dir = math.random(self.spread[1],self.spread[2]),
-                size = math.random(self.size[1],self.size[2]),
-                speed = math.random(self.speed[1],self.speed[2]),
-                lifespan = math.random(self.lifespan[1],self.lifespan[2]),
+                size = math.random(self.size[1],self.size[2]) * precision,
+                speed = math.random(self.speed[1],self.speed[2]) * precision,
+                acceleration = math.random(self.acceleration[1],self.acceleration[2]) * precision,
+                lifespan = math.random(self.lifespan[1],self.lifespan[2]) * precision,
                 thickness = math.random(self.thickness[1],self.thickness[2]),
-                angular = math.random(self.angular[1],self.angular[2]),
+                angular = math.random(self.angular[1],self.angular[2]) * precision,
                 decay = self.decay,
                 image = self.image,
                 rotation = math.random(self.rotation[1],self.rotation[2])
@@ -433,11 +458,12 @@ function ParticleImage:create(amount)
                 x = self.x,
                 y = self.y,
                 dir = math.random(self.spread[1],self.spread[2]),
-                size = math.random(self.size[1],self.size[2]),
-                speed = math.random(self.speed[1],self.speed[2]),
-                lifespan = math.random(self.lifespan[1],self.lifespan[2]),
+                size = math.random(self.size[1],self.size[2]) * precision,
+                speed = math.random(self.speed[1],self.speed[2]) * precision,
+                acceleration = math.random(self.acceleration[1],self.acceleration[2]) * precision,
+                lifespan = math.random(self.lifespan[1],self.lifespan[2]) * precision,
                 thickness = math.random(self.thickness[1],self.thickness[2]),
-                angular = math.random(self.angular[1],self.angular[2]),
+                angular = math.random(self.angular[1],self.angular[2]) * precision,
                 decay = self.decay,
                 image = self.table[math.random(#self.table)],
                 rotation = math.random(self.rotation[1],self.rotation[2])
@@ -462,6 +488,8 @@ function ParticleImage:update()
 
         img.x += math.sin(math.rad(img.dir)) * img.speed
         img.y = img.y - math.cos(math.rad(img.dir)) * img.speed
+        
+        img.speed += img.acceleration / 100
 
         self.particles[part] = img
     end
@@ -494,6 +522,8 @@ function ParticleImageBasic:update()
         img.x += math.sin(math.rad(img.dir)) * img.speed
         img.y = img.y - math.cos(math.rad(img.dir)) * img.speed
 
+        img.speed += img.acceleration / 100
+
         self.particles[part] = img
     end
 
@@ -520,8 +550,9 @@ function ParticlePixel:create(amount)
             x = self.x,
             y = self.y,
             dir = math.random(self.spread[1],self.spread[2]),
-            speed = math.random(self.speed[1],self.speed[2]),
-            lifespan = math.random(self.lifespan[1],self.lifespan[2]),
+            speed = math.random(self.speed[1],self.speed[2]) * precision,
+            acceleration = math.random(self.acceleration[1],self.acceleration[2]) * precision,
+            lifespan = math.random(self.lifespan[1],self.lifespan[2])  * precision,
         }
 
         self.particles[#self.particles+1] = part
@@ -542,6 +573,8 @@ function ParticlePixel:update()
 
         pix.x += math.sin(math.rad(pix.dir)) * pix.speed
         pix.y -= math.cos(math.rad(pix.dir)) * pix.speed
+        
+        pix.speed += pix.acceleration / 100
 
         self.particles[part] = pix
     end
@@ -569,10 +602,35 @@ function Particles:update()
     for particle = 1, #particles, 1 do
         particles[particle]:update()
     end
+
+    for particle = #particles, 1, -1 do
+        if #particles[particle].particles == 0 then
+            table.remove(particles, particle)
+        end
+    end
 end
 
 function Particles:clearAll()
     for part = 1, #particles, 1 do
         particles[part]:clearParticles()
     end
+end
+
+function Particles:removeAll()
+    local lb = #particles
+    for part = 1, #particles, 1 do
+        particles[part] = nil
+    end
+end
+
+function Particles:setPrecision(prec)
+    precision = prec
+end
+
+function Particles:getPrecision()
+    return precision
+end
+
+function Particles:total()
+    return #particles
 end
