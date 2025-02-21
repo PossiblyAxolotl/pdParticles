@@ -569,7 +569,7 @@ function ParticlePixel:update()
     for part = 1, #self.particles, 1 do
         local pix = self.particles[part]
         
-        playdate.graphics.drawPixel(pix.x,pix.y,pix.size)
+        playdate.graphics.drawPixel(pix.x,pix.y)
 
         pix.x += math.sin(math.rad(pix.dir)) * pix.speed
         pix.y -= math.cos(math.rad(pix.dir)) * pix.speed
