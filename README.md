@@ -1,3 +1,7 @@
+# Moved
+
+We're over on Codeberg now! https://codeberg.org/PossiblyAxolotl/pdParticles
+
 # pdParticles
 
 [![Lua Version](https://img.shields.io/badge/Lua-5.4-yellowgreen)](https://lua.org) [![Toybox Compatible](https://img.shields.io/badge/toybox.py-compatible-brightgreen)](https://toyboxpy.io) [![Latest Version](https://img.shields.io/github/v/tag/PossiblyAxolotl/pdParticles)](https://github.com/PossiblyAxolotl/pdParticles/tags)
